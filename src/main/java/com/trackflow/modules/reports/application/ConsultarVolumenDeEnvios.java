@@ -1,10 +1,8 @@
 package com.trackflow.modules.reports.application;
 
-import com.trackflow.modules.reports.domain.PeriodoInvalidoException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -21,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class ConsultarVolumenDeEnvios {
-
-    static final ZoneId ZONA_OPERACION = ZoneId.of("America/Bogota");
 
     /** Los puntos con más carga primero; los pendientes de recepción al final. */
     private static final Comparator<VolumenPorPunto> ORDEN = Comparator
@@ -44,17 +40,9 @@ public class ConsultarVolumenDeEnvios {
      */
     @Transactional(readOnly = true)
     public VolumenDeEnvios ejecutar(LocalDate desde, LocalDate hasta) {
-        Instant ahora = clock.instant();
-        LocalDate hoy = LocalDate.ofInstant(ahora, ZONA_OPERACION);
-
-        LocalDate primerDia = desde == null ? hoy : desde;
-        LocalDate ultimoDia = hasta == null ? primerDia : hasta;
-        validar(primerDia, ultimoDia, hoy);
-
-        Instant inicio = primerDia.atStartOfDay(ZONA_OPERACION).toInstant();
-        Instant finDelPeriodo = ultimoDia.plusDays(1).atStartOfDay(ZONA_OPERACION).toInstant();
-        boolean enCurso = !ultimoDia.isBefore(hoy);
-        Instant corte = enCurso ? ahora : finDelPeriodo;
+        PeriodoDeConsulta periodo = PeriodoDeConsulta.resolver(desde, hasta, clock);
+        Instant inicio = periodo.inicio();
+        Instant corte = periodo.corte();
 
         List<VolumenPorPunto> porPunto = new ArrayList<>(repository.registradosPorPuntoDeIngreso(inicio, corte));
         porPunto.addAll(repository.registradosPendientesDeRecepcion(inicio, corte));
@@ -63,19 +51,7 @@ public class ConsultarVolumenDeEnvios {
         long totalRegistrados = porPunto.stream().mapToLong(VolumenPorPunto::envios).sum();
         long totalEntregados = repository.entregadosEntre(inicio, corte);
 
-        return new VolumenDeEnvios(primerDia, ultimoDia, inicio, corte, enCurso,
+        return new VolumenDeEnvios(periodo.desde(), periodo.hasta(), inicio, corte, periodo.enCurso(),
                 totalRegistrados, totalEntregados, List.copyOf(porPunto));
-    }
-
-    private static void validar(LocalDate primerDia, LocalDate ultimoDia, LocalDate hoy) {
-        if (ultimoDia.isBefore(primerDia)) {
-            throw new PeriodoInvalidoException(
-                    "El periodo está invertido: 'to' (%s) es anterior a 'from' (%s)".formatted(ultimoDia, primerDia));
-        }
-        if (primerDia.isAfter(hoy)) {
-            throw new PeriodoInvalidoException(
-                    "El periodo empieza en el futuro (%s); hoy es %s y el reporte solo cubre envíos ya registrados"
-                            .formatted(primerDia, hoy));
-        }
     }
 }

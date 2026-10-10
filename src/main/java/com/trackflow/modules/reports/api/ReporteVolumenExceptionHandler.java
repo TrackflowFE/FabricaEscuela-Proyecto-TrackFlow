@@ -19,7 +19,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  * precedencia no afecta a ningún otro endpoint.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(assignableTypes = ReporteVolumenController.class)
+@RestControllerAdvice(assignableTypes = {ReporteVolumenController.class, ReporteTiemposDeTransitoController.class})
 public class ReporteVolumenExceptionHandler {
 
     @ExceptionHandler(PeriodoInvalidoException.class)
