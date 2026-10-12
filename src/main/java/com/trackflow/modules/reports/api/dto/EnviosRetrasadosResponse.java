@@ -1,25 +1,49 @@
 package com.trackflow.modules.reports.api.dto;
 
 import com.trackflow.modules.reports.application.EnviosRetrasados;
+import com.trackflow.modules.reports.domain.Severidad;
 import java.time.Instant;
 import java.util.List;
 
-public record EnviosRetrasadosResponse(Instant corte, int totalRetrasados, String mensaje, List<Item> envios) {
+public record EnviosRetrasadosResponse(
+        /** Instante con el que se midió el retraso. */
+        Instant cutoff,
 
-    public record Item(String trackingNumber, String estado, String ultimoPunto, String ciudadOrigen,
-            String ciudadDestino, long horasDetenido, long horasEsperadas, long horasDeExceso, String severidad) {
+        /** Envíos que llevan detenidos más del tiempo esperado. */
+        int totalDelayed,
+
+        /** Solo viene informado cuando no hay envíos retrasados; si no, es null. */
+        String message,
+
+        /** Del más al menos atrasado. */
+        List<ShipmentResponse> shipments) {
+
+    static final String SIN_RETRASOS = "No hay envíos retrasados en este momento";
+
+    /** lastPoint es null si el envío nunca ha tenido un movimiento. */
+    public record ShipmentResponse(String trackingNumber, String status, String lastPoint, String originCity,
+            String destinationCity, long hoursStopped, long hoursExpected, long hoursOver, String severity) {
+
+        static ShipmentResponse from(EnviosRetrasados.Retraso retraso) {
+            return new ShipmentResponse(retraso.trackingNumber(), retraso.estado(), retraso.ultimoPunto(),
+                    retraso.ciudadOrigen(), retraso.ciudadDestino(), retraso.detenido().toHours(),
+                    retraso.maximoEsperado().toHours(), retraso.exceso().toHours(), severidad(retraso.severidad()));
+        }
+
+        private static String severidad(Severidad severidad) {
+            return switch (severidad) {
+                case LEVE -> "LOW";
+                case MODERADA -> "MODERATE";
+                case CRITICA -> "CRITICAL";
+            };
+        }
     }
 
     public static EnviosRetrasadosResponse from(EnviosRetrasados reporte) {
-        List<Item> items = reporte.envios().stream()
-                .map(e -> new Item(e.trackingNumber(), e.estado(),
-                        e.ultimoPunto() == null ? "Sin movimientos" : e.ultimoPunto(),
-                        e.ciudadOrigen(), e.ciudadDestino(),
-                        e.detenido().toHours(), e.maximoEsperado().toHours(), e.exceso().toHours(),
-                        e.severidad().name()))
-                .toList();
-
-        String mensaje = reporte.hayDatos() ? null : "No hay envíos retrasados en este momento.";
-        return new EnviosRetrasadosResponse(reporte.corte(), items.size(), mensaje, items);
+        return new EnviosRetrasadosResponse(
+                reporte.corte(),
+                reporte.envios().size(),
+                reporte.hayDatos() ? null : SIN_RETRASOS,
+                reporte.envios().stream().map(ShipmentResponse::from).toList());
     }
 }
