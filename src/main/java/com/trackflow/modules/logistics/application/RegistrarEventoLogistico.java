@@ -56,6 +56,9 @@ public class RegistrarEventoLogistico {
      *
      * El nombre del punto y la ciudad se toman del catálogo a partir del centro, no del
      * mensaje: un productor externo podría mandar un texto que no corresponde al centro.
+     *
+     * Un despacho guarda además hacia qué ciudad va el camión: la siguiente parada de la
+     * ruta, calculada antes de registrarlo. LogisticsEvent la descarta en otros tipos.
      */
     @Transactional
     public Optional<LogisticsEvent> ejecutar(EventoLogisticoEntrante entrante) {
@@ -86,6 +89,7 @@ public class RegistrarEventoLogistico {
                         entrante.observaciones(),
                         entrante.repartidorNombre(),
                         entrante.ocurridoEn()),
+                new LogisticsEvent.Parada(estado.siguienteParada().id(), estado.siguienteParada().etiqueta()),
                 now));
 
         events.publish(new EventoLogisticoRegistradoEvent(

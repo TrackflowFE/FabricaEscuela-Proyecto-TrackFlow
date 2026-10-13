@@ -17,6 +17,9 @@ public record EventoLogisticoResponse(
         String cityName,
         String notes,
         String delivererName,
+        /** Solo en DISPATCHED: la ciudad hacia la que salió el camión (un hub o el destino). */
+        Long nextStopCityId,
+        String nextStopCity,
         Instant occurredAt,
         Instant registeredAt) {
 
@@ -33,6 +36,8 @@ public record EventoLogisticoResponse(
                 event.getCityName(),
                 event.getNotes(),
                 event.getDelivererName(),
+                event.getNextStopCityId(),
+                event.getNextStopCity(),
                 event.getOccurredAt(),
                 event.getRegisteredAt());
     }
