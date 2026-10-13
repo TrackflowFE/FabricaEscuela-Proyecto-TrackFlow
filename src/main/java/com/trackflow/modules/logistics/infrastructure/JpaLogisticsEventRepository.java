@@ -22,12 +22,12 @@ public class JpaLogisticsEventRepository implements LogisticsEventRepository {
 
     @Override
     public List<LogisticsEvent> findHistorial(String trackingNumber) {
-        return jpa.findByTrackingNumberOrderByOccurredAtAsc(trackingNumber);
+        return jpa.findByTrackingNumberOrderByOccurredAtAscIdAsc(trackingNumber);
     }
 
     @Override
     public List<LogisticsEvent> findTodosCronologicamente() {
-        return jpa.findAllByOrderByOccurredAtAsc();
+        return jpa.findAllByOrderByOccurredAtAscIdAsc();
     }
 
     @Override
