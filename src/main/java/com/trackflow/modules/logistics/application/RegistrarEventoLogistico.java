@@ -2,6 +2,7 @@ package com.trackflow.modules.logistics.application;
 
 import com.trackflow.modules.logistics.application.ValidadorDeRecorrido.LugarValidado;
 import com.trackflow.modules.logistics.domain.FechaDeMovimientoInvalidaException;
+import com.trackflow.modules.logistics.domain.FlujoLogistico;
 import com.trackflow.modules.logistics.domain.LogisticsEvent;
 import com.trackflow.modules.logistics.domain.TrackedShipment;
 import com.trackflow.modules.logistics.domain.UnknownShipmentException;
@@ -91,7 +92,7 @@ public class RegistrarEventoLogistico {
                 saved.getId(),
                 saved.getTrackingNumber(),
                 saved.getType().name(),
-                saved.getType().resultingStatus(),
+                FlujoLogistico.estadoResultante(saved.getType(), estado.ultimoTipo()),
                 saved.getPoint(),
                 saved.getCenterId(),
                 saved.getCityId(),

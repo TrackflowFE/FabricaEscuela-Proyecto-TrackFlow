@@ -4,6 +4,7 @@ import com.trackflow.modules.logistics.application.RegistrarEventoLogistico;
 import com.trackflow.modules.logistics.domain.CentroFueraDeCiudadException;
 import com.trackflow.modules.logistics.domain.CentroInvalidoException;
 import com.trackflow.modules.logistics.domain.FechaDeMovimientoInvalidaException;
+import com.trackflow.modules.logistics.domain.MovimientoAntesDelRegistroException;
 import com.trackflow.modules.logistics.domain.MovimientoFueraDeOrdenException;
 import com.trackflow.modules.logistics.domain.TransicionInvalidaException;
 import com.trackflow.modules.logistics.domain.UnknownShipmentException;
@@ -33,7 +34,7 @@ public class RabbitMQEventoLogisticoListener {
         try {
             registrarEventoLogistico.ejecutar(mensaje.toEntrante());
         } catch (UnknownShipmentException | TransicionInvalidaException | MovimientoFueraDeOrdenException
-                | CentroFueraDeCiudadException | CentroInvalidoException | FechaDeMovimientoInvalidaException e) {
+                | MovimientoAntesDelRegistroException | CentroFueraDeCiudadException | CentroInvalidoException | FechaDeMovimientoInvalidaException e) {
             // Reintentar no va a cambiar la respuesta: ni el envío va a aparecer, ni el
             // movimiento va a caber en el recorrido. A la cola de descartados, con su motivo.
             log.warn("Evento {} del envío {} descartado: {}", mensaje.eventId(), mensaje.trackingNumber(),

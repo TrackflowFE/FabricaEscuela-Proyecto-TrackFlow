@@ -57,6 +57,7 @@ public class ConsultarEstadoDelEnvio {
 
         LogisticsEvent ultimo = historial.isEmpty() ? null : historial.get(historial.size() - 1);
         EventType ultimoTipo = ultimo == null ? null : ultimo.getType();
+        EventType penultimoTipo = historial.size() < 2 ? null : historial.get(historial.size() - 2).getType();
 
         // El centro del último movimiento dice dónde está el paquete. Los eventos
         // viejos, registrados cuando el punto era texto libre, no tienen centro: de
@@ -74,8 +75,9 @@ public class ConsultarEstadoDelEnvio {
 
         return new EstadoDelEnvio(
                 envio.getTrackingNumber(),
+                envio.getRegisteredAt(),
                 ultimoTipo,
-                FlujoLogistico.estadoTras(ultimoTipo),
+                FlujoLogistico.estadoTras(ultimoTipo, penultimoTipo),
                 ultimo == null ? null : ultimo.getOccurredAt(),
                 centroActual.map(Centro::getId).orElse(null),
                 centroActual.map(Centro::getName).orElse(null),

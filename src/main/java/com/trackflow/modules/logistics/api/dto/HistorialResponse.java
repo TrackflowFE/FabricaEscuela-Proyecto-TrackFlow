@@ -2,6 +2,7 @@ package com.trackflow.modules.logistics.api.dto;
 
 import com.trackflow.modules.logistics.domain.LogisticsEvent;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Historial de un envío (HU-04): sus movimientos del más antiguo al más reciente.
@@ -23,6 +24,9 @@ public record HistorialResponse(
                 trackingNumber,
                 eventos.size(),
                 eventos.isEmpty() ? SIN_MOVIMIENTOS : null,
-                eventos.stream().map(EventoLogisticoResponse::from).toList());
+                IntStream.range(0, eventos.size())
+                        .mapToObj(i -> EventoLogisticoResponse.from(eventos.get(i),
+                                i == 0 ? null : eventos.get(i - 1).getType()))
+                        .toList());
     }
 }

@@ -4,6 +4,7 @@ import com.trackflow.modules.logistics.application.ConsultarAccionesDisponibles.
 import com.trackflow.modules.logistics.application.ConsultarAccionesDisponibles.Acciones;
 import com.trackflow.modules.logistics.application.EstadoDelEnvio;
 import com.trackflow.modules.logistics.domain.CiudadEsperada;
+import com.trackflow.modules.logistics.domain.FlujoLogistico;
 import com.trackflow.shared.geografia.Ciudad;
 import java.time.Instant;
 import java.util.List;
@@ -66,14 +67,14 @@ public record AccionesDisponiblesResponse(
                 CiudadResponse.from(estado.origen()),
                 CiudadResponse.from(estado.destino()),
                 estado.rutaPlaneada().stream().map(CiudadResponse::from).toList(),
-                acciones.acciones().stream().map(AccionesDisponiblesResponse::aAccion).toList());
+                acciones.acciones().stream().map(accion -> aAccion(accion, estado)).toList());
     }
 
-    private static AccionResponse aAccion(Accion accion) {
+    private static AccionResponse aAccion(Accion accion, EstadoDelEnvio estado) {
         return new AccionResponse(
                 accion.tipo().name(),
                 accion.tipo().etiqueta(),
-                accion.tipo().resultingStatus(),
+                FlujoLogistico.estadoResultante(accion.tipo(), estado.ultimoTipo()),
                 ciudadEsperadaEnIngles(accion.ciudadEsperada()),
                 CiudadResponse.from(accion.ciudadDeLosCentros()),
                 accion.centros().stream()
