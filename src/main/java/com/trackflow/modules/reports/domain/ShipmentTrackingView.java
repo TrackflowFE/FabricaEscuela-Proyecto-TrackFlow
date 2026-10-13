@@ -61,6 +61,14 @@ public class ShipmentTrackingView {
     @Column
     private String lastMovementCity;
 
+    /** Si el último movimiento fue un despacho: hacia qué ciudad va el camión. Null si no. */
+    @Column
+    private String nextStopCity;
+
+    /** Si el último movimiento fue un despacho: cuánto dura el tramo según la red. Null si no. */
+    @Column
+    private Integer plannedLegHours;
+
     /** Quién envía y desde qué ciudad. */
     public record Origen(String senderName, Long cityId, String city) {
     }
@@ -95,9 +103,20 @@ public class ShipmentTrackingView {
      * @return false si el movimiento es anterior al último aplicado y se ignora
      */
     public boolean registrarMovimiento(String newStatus, String point, Long cityId, String city, Instant movedAt) {
+        return registrarMovimiento(newStatus, point, cityId, city, null, null, movedAt);
+    }
+
+    /**
+     * @param nextStopCity hacia dónde salió el camión, si el movimiento es un despacho
+     * @param plannedLegHours cuánto dura ese tramo según la red, si es un despacho
+     */
+    public boolean registrarMovimiento(String newStatus, String point, Long cityId, String city,
+            String nextStopCity, Integer plannedLegHours, Instant movedAt) {
         if (lastMovementAt != null && movedAt.isBefore(lastMovementAt)) {
             return false;
         }
+        this.nextStopCity = nextStopCity;
+        this.plannedLegHours = plannedLegHours;
 
         this.status = newStatus;
         this.lastMovementPoint = point;
@@ -127,4 +146,6 @@ public class ShipmentTrackingView {
     public Instant getLastMovementAt() { return lastMovementAt; }
     public Long getLastMovementCityId() { return lastMovementCityId; }
     public String getLastMovementCity() { return lastMovementCity; }
+    public String getNextStopCity() { return nextStopCity; }
+    public Integer getPlannedLegHours() { return plannedLegHours; }
 }

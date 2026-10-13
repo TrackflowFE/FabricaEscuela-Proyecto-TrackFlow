@@ -27,4 +27,23 @@ public final class ReglaDeRetraso {
     public Optional<Duration> maximoPara(String status) {
         return Optional.ofNullable(maximoSinMovimiento.get(status));
     }
+
+    /** Margen sobre la duración planeada del tramo: descargas, tráfico, controles. */
+    static final double TOLERANCIA_DEL_TRAMO = 1.25;
+
+    /**
+     * Como {@link #maximoPara(String)}, pero un envío en camino se compara contra su
+     * propio tramo: la duración planeada más un 25 %, redondeada a la hora siguiente. Un
+     * Medellín → Bogotá (9 h) espera 12 h, no las mismas 48 h que un Barranquilla →
+     * Bogotá (18 h). Sin tramo conocido, o si el envío espera en un hub, rige la regla
+     * fija del estado.
+     *
+     * @param horasDelTramo duración planeada del tramo en curso, o null si no va en camino
+     */
+    public Optional<Duration> maximoPara(String status, Integer horasDelTramo) {
+        if ("IN_TRANSIT".equals(status) && horasDelTramo != null && horasDelTramo > 0) {
+            return Optional.of(Duration.ofHours((long) Math.ceil(horasDelTramo * TOLERANCIA_DEL_TRAMO)));
+        }
+        return maximoPara(status);
+    }
 }

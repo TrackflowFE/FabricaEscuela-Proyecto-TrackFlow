@@ -20,14 +20,21 @@ public record EnviosRetrasadosResponse(
 
     static final String SIN_RETRASOS = "No hay envíos retrasados en este momento";
 
-    /** lastPoint es null si el envío nunca ha tenido un movimiento. */
+    /**
+     * lastPoint es null si el envío nunca ha tenido un movimiento. nextStop dice hacia dónde
+     * va el camión si el envío está en camino (si no, null), y plannedLegHours es la
+     * duración del tramo con la que se calculó hoursExpected (null si se usó la regla fija
+     * del estado).
+     */
     public record ShipmentResponse(String trackingNumber, String status, String lastPoint, String originCity,
-            String destinationCity, long hoursStopped, long hoursExpected, long hoursOver, String severity) {
+            String destinationCity, long hoursStopped, long hoursExpected, long hoursOver, String severity,
+            String nextStop, Integer plannedLegHours) {
 
         static ShipmentResponse from(EnviosRetrasados.Retraso retraso) {
             return new ShipmentResponse(retraso.trackingNumber(), retraso.estado(), retraso.ultimoPunto(),
                     retraso.ciudadOrigen(), retraso.ciudadDestino(), retraso.detenido().toHours(),
-                    retraso.maximoEsperado().toHours(), retraso.exceso().toHours(), severidad(retraso.severidad()));
+                    retraso.maximoEsperado().toHours(), retraso.exceso().toHours(), severidad(retraso.severidad()),
+                    retraso.enCaminoA(), retraso.horasDelTramo());
         }
 
         private static String severidad(Severidad severidad) {

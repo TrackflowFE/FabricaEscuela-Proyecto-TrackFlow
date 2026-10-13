@@ -45,7 +45,7 @@ public class ConsultarEnviosRetrasados {
     }
 
     private Optional<Retraso> evaluar(ShipmentTrackingView vista, Instant ahora) {
-        Optional<Duration> maximo = regla.maximoPara(vista.getStatus());
+        Optional<Duration> maximo = regla.maximoPara(vista.getStatus(), vista.getPlannedLegHours());
         if (maximo.isEmpty()) {
             return Optional.empty();
         }
@@ -58,6 +58,7 @@ public class ConsultarEnviosRetrasados {
 
         Severidad severidad = Severidad.de(detenido.minus(maximo.get()), maximo.get());
         return Optional.of(new Retraso(vista.getTrackingNumber(), vista.getStatus(), vista.getLastMovementPoint(),
-                vista.getOriginCity(), vista.getDestinationCity(), detenido, maximo.get(), severidad));
+                vista.getOriginCity(), vista.getDestinationCity(), detenido, maximo.get(), severidad,
+                vista.getNextStopCity(), vista.getPlannedLegHours()));
     }
 }
