@@ -5,6 +5,7 @@ import com.trackflow.modules.logistics.domain.CentroInvalidoException;
 import com.trackflow.modules.logistics.domain.CentroNoEncontradoException;
 import com.trackflow.modules.logistics.domain.ClaveDeIdempotenciaEnUsoException;
 import com.trackflow.modules.logistics.domain.ClaveDeIdempotenciaInvalidaException;
+import com.trackflow.modules.logistics.domain.MovimientoAntesDelRegistroException;
 import com.trackflow.modules.logistics.domain.MovimientoFueraDeOrdenException;
 import com.trackflow.modules.logistics.domain.FechaDeMovimientoInvalidaException;
 import com.trackflow.modules.logistics.domain.TransicionInvalidaException;
@@ -77,6 +78,13 @@ public class LogisticsExceptionHandler {
     ProblemDetail movimientoFueraDeOrden(MovimientoFueraDeOrdenException e) {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
         problema.setTitle("Movimiento anterior al último registrado");
+        return problema;
+    }
+
+    @ExceptionHandler(MovimientoAntesDelRegistroException.class)
+    ProblemDetail movimientoAntesDelRegistro(MovimientoAntesDelRegistroException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problema.setTitle("Movimiento anterior al registro del envío");
         return problema;
     }
 }

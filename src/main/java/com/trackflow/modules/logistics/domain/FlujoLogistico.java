@@ -79,9 +79,29 @@ public final class FlujoLogistico {
         return siguientesPermitidos(ultimo).contains(siguiente);
     }
 
-    /** Estado en que queda el envío después de {@code ultimo}. */
-    public static String estadoTras(EventType ultimo) {
-        return ultimo == null ? ESTADO_REGISTRADO : ultimo.resultingStatus();
+    /**
+     * Estado en que queda el envío después de {@code ultimo}, sabiendo cuál fue el
+     * movimiento anterior a ese ({@code anterior}, null si {@code ultimo} fue el primero).
+     */
+    public static String estadoTras(EventType ultimo, EventType anterior) {
+        return ultimo == null ? ESTADO_REGISTRADO : estadoResultante(ultimo, anterior);
+    }
+
+    /**
+     * Estado que deja un movimiento de tipo {@code tipo} cuando el movimiento previo
+     * del envío fue {@code anterior} (null si es el primero).
+     *
+     * El primer RECEIVED_AT_CENTER es la entrada al centro de origen. Uno posterior
+     * es un transbordo en un hub: el paquete sigue en camino hacia su destino, así que
+     * el envío se queda EN TRÁNSITO. Si dejara AT_DISTRIBUTION_CENTER, como antes,
+     * el cliente vería que su paquete volvió al centro de origen, y el progreso
+     * retrocedería una etapa.
+     */
+    public static String estadoResultante(EventType tipo, EventType anterior) {
+        if (tipo == EventType.RECEIVED_AT_CENTER && anterior != null) {
+            return EventType.DISPATCHED.resultingStatus();
+        }
+        return tipo.resultingStatus();
     }
 
     /**

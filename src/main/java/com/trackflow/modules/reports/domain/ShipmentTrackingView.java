@@ -108,6 +108,11 @@ public class ShipmentTrackingView {
         return true;
     }
 
+    /** Movimiento sin ciudad conocida, como los reportados con texto libre antes del catálogo de centros. */
+    public boolean registrarMovimiento(String newStatus, String point, Instant movedAt) {
+        return registrarMovimiento(newStatus, point, null, null, movedAt);
+    }
+
     public String getTrackingNumber() { return trackingNumber; }
     public String getStatus() { return status; }
     public String getSenderName() { return senderName; }

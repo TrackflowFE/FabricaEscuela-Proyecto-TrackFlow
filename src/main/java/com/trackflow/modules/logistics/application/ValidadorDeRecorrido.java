@@ -5,6 +5,7 @@ import com.trackflow.modules.logistics.domain.CentroFueraDeCiudadException;
 import com.trackflow.modules.logistics.domain.CiudadEsperada;
 import com.trackflow.modules.logistics.domain.EventType;
 import com.trackflow.modules.logistics.domain.FlujoLogistico;
+import com.trackflow.modules.logistics.domain.MovimientoAntesDelRegistroException;
 import com.trackflow.modules.logistics.domain.MovimientoFueraDeOrdenException;
 import com.trackflow.modules.logistics.domain.TransicionInvalidaException;
 import com.trackflow.shared.geografia.CatalogoDeCiudades;
@@ -14,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Las reglas del recorrido, en un solo lugar: el movimiento debe caber en el orden del
- * flujo y en la ruta, no puede retroceder en el tiempo, y el centro debe estar activo y
- * en la ciudad que el recorrido exige.
+ * flujo y en la ruta, no puede retroceder en el tiempo ni ser anterior al registro del
+ * envío, y el centro debe estar activo y en la ciudad que el recorrido exige.
  *
  * Lo usan las dos puntas de la ingesta. La admisión las aplica para responder con su
  * código HTTP antes de encolar; el registro las vuelve a aplicar al consumir la cola,
@@ -51,8 +52,17 @@ public class ValidadorDeRecorrido {
     /**
      * En el orden correcto, acorde con la ruta (tras un despacho, llegada si la
      * siguiente parada es el destino, hub si no) y sin retroceder en el tiempo.
+     *
+     * Tampoco antes del registro: un paquete no puede recibirse en un centro antes de
+     * que el envío exista. Sin esta regla solo se comparaba contra el último
+     * movimiento, así que el primero podía tener cualquier fecha pasada.
      */
     private static void validarTransicion(EstadoDelEnvio estado, EventType tipo, Instant ocurridoEn) {
+        if (ocurridoEn.isBefore(estado.registradoEn())) {
+            throw new MovimientoAntesDelRegistroException(estado.trackingNumber(), ocurridoEn,
+                    estado.registradoEn());
+        }
+
         if (!estado.siguientesPermitidos().contains(tipo)) {
             throw new TransicionInvalidaException(estado.trackingNumber(), estado.estado(), tipo,
                     estado.siguientesPermitidos());

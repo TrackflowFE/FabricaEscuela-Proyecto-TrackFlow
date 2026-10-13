@@ -1,5 +1,7 @@
 package com.trackflow.modules.logistics.api.dto;
 
+import com.trackflow.modules.logistics.domain.EventType;
+import com.trackflow.modules.logistics.domain.FlujoLogistico;
 import com.trackflow.modules.logistics.domain.LogisticsEvent;
 import java.time.Instant;
 
@@ -18,12 +20,13 @@ public record EventoLogisticoResponse(
         Instant occurredAt,
         Instant registeredAt) {
 
-    public static EventoLogisticoResponse from(LogisticsEvent event) {
+    /** @param anterior tipo del movimiento previo del mismo envío, o null si este es el primero */
+    public static EventoLogisticoResponse from(LogisticsEvent event, EventType anterior) {
         return new EventoLogisticoResponse(
                 event.getId(),
                 event.getTrackingNumber(),
                 event.getType().name(),
-                event.getType().resultingStatus(),
+                FlujoLogistico.estadoResultante(event.getType(), anterior),
                 event.getCenterId(),
                 event.getPoint(),
                 event.getCityId(),

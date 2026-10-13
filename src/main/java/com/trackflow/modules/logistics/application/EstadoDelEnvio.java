@@ -15,6 +15,7 @@ import java.util.Set;
  * guardar el estado aparte: que las dos versiones se desincronicen y ya no se sepa
  * cuál manda.
  *
+ * @param registradoEn cuándo se registró el envío: ningún movimiento puede ser anterior
  * @param ultimoTipo último movimiento registrado, o null si el envío aún no se ha movido
  * @param centroActualId último centro por el que pasó, o null si todavía ninguno
  * @param ciudadActual dónde está el paquete; mientras no se haya movido, la de origen
@@ -25,6 +26,7 @@ import java.util.Set;
  */
 public record EstadoDelEnvio(
         String trackingNumber,
+        Instant registradoEn,
         EventType ultimoTipo,
         String estado,
         Instant ultimoMovimientoEn,
