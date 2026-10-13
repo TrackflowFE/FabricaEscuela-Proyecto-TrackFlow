@@ -2,6 +2,7 @@ package com.trackflow.modules.shipments.api;
 
 import com.trackflow.modules.shipments.domain.DocumentoInvalidoException;
 import com.trackflow.shared.geografia.CiudadDesconocidaException;
+import com.trackflow.shared.geografia.CiudadSinCoberturaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +26,13 @@ public class ShipmentsExceptionHandler {
     ProblemDetail ciudadDesconocida(CiudadDesconocidaException e) {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
         problema.setTitle("Ciudad no encontrada en el catálogo");
+        return problema;
+    }
+
+    @ExceptionHandler(CiudadSinCoberturaException.class)
+    ProblemDetail ciudadSinCobertura(CiudadSinCoberturaException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+        problema.setTitle("Ciudad sin cobertura");
         return problema;
     }
 }

@@ -61,7 +61,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET, "/api/shipments/*/events").permitAll();
                     // El catálogo de ciudades son las capitales del país: no es información
                     // de la operación, y el formulario de registro lo usa para sugerir.
-                    auth.requestMatchers(HttpMethod.GET, "/api/cities").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/cities", "/api/cities/*").permitAll();
                     // /error es a donde Spring reenvía las respuestas de error: si se
                     // cerrara, un 404 llegaría al cliente como 401.
                     auth.requestMatchers("/", "/error", "/actuator/health/**", "/swagger-ui.html",

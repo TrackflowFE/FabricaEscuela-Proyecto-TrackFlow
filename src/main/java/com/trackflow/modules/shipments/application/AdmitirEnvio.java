@@ -4,6 +4,7 @@ import com.trackflow.modules.shipments.domain.Party;
 import com.trackflow.modules.shipments.domain.TrackingNumber;
 import com.trackflow.shared.geografia.CatalogoDeCiudades;
 import com.trackflow.shared.geografia.Ciudad;
+import com.trackflow.shared.geografia.CoberturaLogistica;
 import java.time.Clock;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -22,23 +23,31 @@ public class AdmitirEnvio {
     private final TrackingNumberGenerator trackingNumbers;
     private final EnvioSolicitadoPublisher publisher;
     private final CatalogoDeCiudades ciudades;
+    private final CoberturaLogistica cobertura;
     private final Clock clock;
 
     public AdmitirEnvio(TrackingNumberGenerator trackingNumbers, EnvioSolicitadoPublisher publisher,
-            CatalogoDeCiudades ciudades, Clock clock) {
+            CatalogoDeCiudades ciudades, CoberturaLogistica cobertura, Clock clock) {
         this.trackingNumbers = trackingNumbers;
         this.publisher = publisher;
         this.ciudades = ciudades;
+        this.cobertura = cobertura;
         this.clock = clock;
     }
 
     /**
      * Las ciudades se resuelven aquí, antes de encolar: una ciudad inexistente se
      * rechaza de inmediato con un 400 en lugar de acabar en la cola de descartados.
+     *
+     * Además deben tener cobertura: un envío hacia o desde una ciudad sin centros
+     * activos nunca podría recibirse en origen ni llegar a destino, y quedaría
+     * registrado pero muerto.
      */
     public EnvioSolicitado ejecutar(Command command) {
         Ciudad ciudadRemitente = ciudades.exigir(command.remitente().ciudadId());
         Ciudad ciudadDestino = ciudades.exigir(command.destinatario().ciudadId());
+        cobertura.exigir(ciudadRemitente);
+        cobertura.exigir(ciudadDestino);
 
         TrackingNumber trackingNumber = trackingNumbers.next();
 
