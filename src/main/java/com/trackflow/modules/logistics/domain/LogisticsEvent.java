@@ -43,6 +43,13 @@ public class LogisticsEvent {
     @Column(updatable = false)
     private Long centerId;
 
+    /**
+     * Ciudad del centro, por id del catálogo: es la que sirve para agrupar por ciudad.
+     * Null en los eventos históricos sin centro.
+     */
+    @Column(updatable = false)
+    private Long cityId;
+
     /** Nombre de la ciudad del centro, congelado en el momento del registro. */
     @Column(updatable = false)
     private String cityName;
@@ -63,9 +70,10 @@ public class LogisticsEvent {
      * Dónde ocurrió el movimiento.
      *
      * @param centerId id del centro del catálogo, o null si se reportó con texto libre
+     * @param cityId id de la ciudad del centro en el catálogo
      * @param cityName ciudad del centro, congelada en el momento del registro
      */
-    public record Lugar(String point, Long centerId, String cityName) {
+    public record Lugar(String point, Long centerId, Long cityId, String cityName) {
     }
 
     /** Lo que reporta el operador, antes de que el sistema le ponga fecha de registro. */
@@ -83,6 +91,7 @@ public class LogisticsEvent {
         this.point = reporte.lugar().point();
         this.notes = reporte.notes();
         this.centerId = reporte.lugar().centerId();
+        this.cityId = reporte.lugar().cityId();
         this.cityName = reporte.lugar().cityName();
         this.delivererName = reporte.delivererName();
         this.occurredAt = reporte.occurredAt();
@@ -128,6 +137,10 @@ public class LogisticsEvent {
 
     public Long getCenterId() {
         return centerId;
+    }
+
+    public Long getCityId() {
+        return cityId;
     }
 
     public String getCityName() {

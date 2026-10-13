@@ -37,6 +37,8 @@ public class ConsultaEnvioController {
                 view.getRegisteredAt(),
                 view.getLastMovementPoint(),
                 view.getLastMovementAt(),
+                view.getLastMovementCityId() != null ? view.getLastMovementCityId() : view.getOriginCityId(),
+                view.getLastMovementCity() != null ? view.getLastMovementCity() : view.getOriginCity(),
                 direccionSiEntregado
         ));
     }

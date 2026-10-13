@@ -366,7 +366,7 @@ public class DataSeeder implements ApplicationRunner {
         Ciudad ciudadCentro = ciudades.exigir(centro.getCityId());
 
         eventos.publicar(new EventoLogisticoEntrante(
-                eventId, trackingNumber, movimiento.tipo(), centro.getId(), centro.getName(),
+                eventId, trackingNumber, movimiento.tipo(), centro.getId(), ciudadCentro.id(), centro.getName(),
                 ciudadCentro.etiqueta(), movimiento.observaciones(), movimiento.repartidor(),
                 hace(movimiento.horas())));
     }

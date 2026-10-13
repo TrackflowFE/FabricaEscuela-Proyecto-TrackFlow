@@ -57,6 +57,24 @@ public final class FlujoLogistico {
         return Collections.unmodifiableSet(ultimo == null ? DESDE_REGISTRADO : SIGUIENTES.get(ultimo));
     }
 
+    /**
+     * Movimientos admisibles teniendo en cuenta la ruta. Después de un despacho caben
+     * dos movimientos, pero cuál depende de a dónde va el camión: si la siguiente
+     * parada de la ruta es el destino, solo la llegada; si no, solo el ingreso a un
+     * hub. Ofrecer los dos dejaría registrar una llegada saltándose ciudades de la ruta,
+     * o un hub cuando el paquete ya va directo al destino.
+     */
+    public static Set<EventType> siguientesPermitidos(EventType ultimo, boolean siguienteParadaEsDestino) {
+        Set<EventType> permitidos = siguientesPermitidos(ultimo);
+        if (ultimo != EventType.DISPATCHED) {
+            return permitidos;
+        }
+        EventType queToca = siguienteParadaEsDestino
+                ? EventType.ARRIVED_AT_DESTINATION_CENTER
+                : EventType.RECEIVED_AT_CENTER;
+        return Collections.unmodifiableSet(EnumSet.of(queToca));
+    }
+
     public static boolean permite(EventType ultimo, EventType siguiente) {
         return siguientesPermitidos(ultimo).contains(siguiente);
     }
@@ -69,11 +87,12 @@ public final class FlujoLogistico {
     /**
      * Ciudad en que debe estar el centro del movimiento. Depende del tipo y de si el
      * envío ya se movió: el primer RECEIVED_AT_CENTER es la entrada al centro de
-     * origen, mientras que uno posterior solo puede ser un hub de paso.
+     * origen, mientras que uno posterior es un hub de paso, y debe ser la siguiente
+     * ciudad de la ruta.
      */
     public static CiudadEsperada ciudadEsperada(EventType tipo, EventType ultimo) {
         return switch (tipo) {
-            case RECEIVED_AT_CENTER -> ultimo == null ? CiudadEsperada.ORIGEN : CiudadEsperada.HUB_INTERMEDIO;
+            case RECEIVED_AT_CENTER -> ultimo == null ? CiudadEsperada.ORIGEN : CiudadEsperada.SIGUIENTE_PARADA;
             case DISPATCHED -> CiudadEsperada.ACTUAL;
             case ARRIVED_AT_DESTINATION_CENTER, OUT_FOR_DELIVERY, DELIVERED -> CiudadEsperada.DESTINO;
         };

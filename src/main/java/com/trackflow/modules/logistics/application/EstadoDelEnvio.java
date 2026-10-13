@@ -4,6 +4,7 @@ import com.trackflow.modules.logistics.domain.CiudadEsperada;
 import com.trackflow.modules.logistics.domain.EventType;
 import com.trackflow.shared.geografia.Ciudad;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,6 +19,9 @@ import java.util.Set;
  * @param centroActualId último centro por el que pasó, o null si todavía ninguno
  * @param ciudadActual dónde está el paquete; mientras no se haya movido, la de origen
  * @param ultimoMovimientoEn cuándo ocurrió el último movimiento, o null si no hay
+ * @param rutaPlaneada ciudades por las que debe pasar desde la actual hasta el destino,
+ *        en orden; la primera es la actual y la última el destino
+ * @param siguienteParada la ciudad a la que debe llegar tras el próximo despacho
  */
 public record EstadoDelEnvio(
         String trackingNumber,
@@ -29,19 +33,17 @@ public record EstadoDelEnvio(
         Ciudad ciudadActual,
         Ciudad origen,
         Ciudad destino,
+        List<Ciudad> rutaPlaneada,
+        Ciudad siguienteParada,
         Set<EventType> siguientesPermitidos) {
 
-    /**
-     * Traduce la regla abstracta a la ciudad concreta que exige. Devuelve null para
-     * {@link CiudadEsperada#HUB_INTERMEDIO}, que no señala una ciudad sino que excluye
-     * la de destino.
-     */
+    /** Traduce la regla abstracta a la ciudad concreta que exige. */
     public Ciudad ciudadQueExige(CiudadEsperada esperada) {
         return switch (esperada) {
             case ORIGEN -> origen;
             case DESTINO -> destino;
             case ACTUAL -> ciudadActual;
-            case HUB_INTERMEDIO -> null;
+            case SIGUIENTE_PARADA -> siguienteParada;
         };
     }
 }

@@ -15,6 +15,13 @@ public record TrackingResponse(
         Instant lastMovementAt,
 
         /**
+         * Ciudad donde está el paquete: la del último movimiento. Mientras no se haya
+         * movido es la de origen, que es donde lo tiene el remitente.
+         */
+        Long currentCityId,
+        String currentCity,
+
+        /**
          * Dirección del destinatario. Solo viene informada cuando status es
          * DELIVERED: antes de eso el paquete no ha llegado ahí, así que mostrarla no
          * tiene sentido; en cualquier otro estado este campo es null.

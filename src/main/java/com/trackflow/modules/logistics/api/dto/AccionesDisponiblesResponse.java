@@ -21,6 +21,7 @@ public record AccionesDisponiblesResponse(
         UbicacionResponse currentLocation,
         CiudadResponse origin,
         CiudadResponse destination,
+        List<CiudadResponse> plannedRoute,
         List<AccionResponse> actions) {
 
     public record CiudadResponse(Long id, String name) {
@@ -35,8 +36,8 @@ public record AccionesDisponiblesResponse(
     }
 
     /**
-     * @param ciudadEsperada por qué se ofrecen esos centros y no otros (ORIGEN,
-     *        DESTINO, ACTUAL, HUB_INTERMEDIO), para que la interfaz pueda explicarlo
+     * @param expectedCity por qué se ofrecen esos centros y no otros (ORIGIN,
+     *        DESTINATION, CURRENT, NEXT_STOP), para que la interfaz pueda explicarlo
      * @param ruta trayecto del movimiento; solo el despacho tiene, el resto es null
      */
     public record AccionResponse(
@@ -64,6 +65,7 @@ public record AccionesDisponiblesResponse(
                         estado.ciudadActual().etiqueta()),
                 CiudadResponse.from(estado.origen()),
                 CiudadResponse.from(estado.destino()),
+                estado.rutaPlaneada().stream().map(CiudadResponse::from).toList(),
                 acciones.acciones().stream().map(AccionesDisponiblesResponse::aAccion).toList());
     }
 
@@ -86,7 +88,7 @@ public record AccionesDisponiblesResponse(
             case ORIGEN -> "ORIGIN";
             case DESTINO -> "DESTINATION";
             case ACTUAL -> "CURRENT";
-            case HUB_INTERMEDIO -> "INTERMEDIATE_HUB";
+            case SIGUIENTE_PARADA -> "NEXT_STOP";
         };
     }
 }

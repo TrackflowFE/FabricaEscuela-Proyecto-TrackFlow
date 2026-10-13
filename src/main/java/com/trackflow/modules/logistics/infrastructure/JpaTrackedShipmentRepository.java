@@ -28,4 +28,9 @@ public class JpaTrackedShipmentRepository implements TrackedShipmentRepository {
     public Optional<TrackedShipment> porTrackingNumber(String trackingNumber) {
         return jpa.findById(trackingNumber);
     }
+
+    @Override
+    public Optional<TrackedShipment> porTrackingNumberParaActualizar(String trackingNumber) {
+        return jpa.bloquearPorTrackingNumber(trackingNumber);
+    }
 }

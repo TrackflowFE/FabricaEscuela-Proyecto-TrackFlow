@@ -2,6 +2,7 @@ package com.trackflow.modules.logistics.infrastructure;
 
 import com.trackflow.modules.logistics.domain.Centro;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -38,4 +39,9 @@ interface CentroJpaRepository extends JpaRepository<Centro, Long> {
                      c.name
             """)
     List<Centro> buscar(@Param("texto") String texto, @Param("ciudadId") Long ciudadId, Limit limite);
+
+    boolean existsByCityIdAndActiveTrue(Long cityId);
+
+    @Query("select distinct c.cityId from Centro c where c.active = true")
+    Set<Long> ciudadesConCentroActivo();
 }

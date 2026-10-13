@@ -17,6 +17,7 @@ public record EventoLogisticoEntrante(
         String trackingNumber,
         EventType tipo,
         Long centroId,
+        Long ciudadId,
         String punto,
         String ciudadNombre,
         String observaciones,
