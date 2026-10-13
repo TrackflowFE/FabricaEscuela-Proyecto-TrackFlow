@@ -41,6 +41,7 @@ public class RepublicarEventosLogisticos {
                     evento.getType().resultingStatus(),
                     evento.getPoint(),
                     evento.getCenterId(),
+                    evento.getCityId(),
                     evento.getCityName(),
                     evento.getOccurredAt(),
                     evento.getRegisteredAt(),

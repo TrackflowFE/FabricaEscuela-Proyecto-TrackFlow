@@ -36,6 +36,8 @@ public class ProyectarSeguimientoEnvio {
                     boolean aplicado = view.registrarMovimiento(
                             event.resultingStatus(),
                             event.point(),
+                            event.cityId(),
+                            event.cityName(),
                             event.movedAt()
                     );
 

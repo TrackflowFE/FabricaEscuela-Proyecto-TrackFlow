@@ -10,10 +10,11 @@ import java.time.Instant;
  * envío: {@code movedAt} es cuándo ocurrió el movimiento, {@code registeredAt} cuándo
  * se recibió el reporte y {@code occurredAt} cuándo se publicó este evento.
  *
- * {@code centerId} y {@code cityName} identifican el centro del catálogo donde ocurrió
- * el movimiento, para que quien agrupe por punto de la red no dependa del nombre
- * (que puede repetirse o cambiar). Son null en los eventos históricos registrados con
- * texto libre, antes de que existiera el catálogo de centros.
+ * {@code centerId} y {@code cityId} identifican el centro y la ciudad del catálogo donde
+ * ocurrió el movimiento, para que quien agrupe por punto de la red o por ciudad no
+ * dependa del nombre (que puede repetirse o cambiar); {@code cityName} es la etiqueta
+ * para mostrar. Son null en los eventos históricos registrados con texto libre, antes
+ * de que existiera el catálogo de centros.
  */
 public record EventoLogisticoRegistradoEvent(
         Long logisticsEventId,
@@ -22,6 +23,7 @@ public record EventoLogisticoRegistradoEvent(
         String resultingStatus,
         String point,
         Long centerId,
+        Long cityId,
         String cityName,
         Instant movedAt,
         Instant registeredAt,

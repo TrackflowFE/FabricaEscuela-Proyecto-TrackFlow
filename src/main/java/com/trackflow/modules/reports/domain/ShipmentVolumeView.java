@@ -38,6 +38,10 @@ public class ShipmentVolumeView {
     @Column
     private String entryPoint;
 
+    /** Ciudad del punto de ingreso, por id del catálogo. Null si aún no entra o si se reportó con texto libre. */
+    @Column
+    private Long entryCityId;
+
     /** Ciudad del punto de ingreso, congelada en el momento del movimiento. */
     @Column
     private String entryCity;
@@ -51,7 +55,7 @@ public class ShipmentVolumeView {
     private Instant deliveredAt;
 
     /** Dónde entró el envío a la red y cuándo. */
-    public record Ingreso(Long centerId, String point, String city, Instant at) {
+    public record Ingreso(Long centerId, String point, Long cityId, String city, Instant at) {
     }
 
     protected ShipmentVolumeView() {
@@ -78,6 +82,7 @@ public class ShipmentVolumeView {
 
         this.entryCenterId = ingreso.centerId();
         this.entryPoint = ingreso.point();
+        this.entryCityId = ingreso.cityId();
         this.entryCity = ingreso.city();
         this.receivedAt = ingreso.at();
 
@@ -109,6 +114,7 @@ public class ShipmentVolumeView {
     public String getOriginCity() { return originCity; }
     public Long getEntryCenterId() { return entryCenterId; }
     public String getEntryPoint() { return entryPoint; }
+    public Long getEntryCityId() { return entryCityId; }
     public String getEntryCity() { return entryCity; }
     public Instant getReceivedAt() { return receivedAt; }
     public Instant getDeliveredAt() { return deliveredAt; }

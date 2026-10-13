@@ -56,7 +56,8 @@ public class ProyectarVolumenDeEnvios {
                 .ifPresent(view -> {
                     boolean aplicado = esIngreso
                             ? view.registrarIngreso(new ShipmentVolumeView.Ingreso(
-                                    event.centerId(), event.point(), event.cityName(), event.movedAt()))
+                                    event.centerId(), event.point(), event.cityId(), event.cityName(),
+                                    event.movedAt()))
                             : view.registrarEntrega(event.movedAt());
 
                     if (aplicado) {

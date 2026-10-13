@@ -54,6 +54,13 @@ public class ShipmentTrackingView {
     @Column
     private Instant lastMovementAt;
 
+    /** Ciudad del último movimiento: dónde está el paquete. Null mientras no se mueva. */
+    @Column
+    private Long lastMovementCityId;
+
+    @Column
+    private String lastMovementCity;
+
     /** Quién envía y desde qué ciudad. */
     public record Origen(String senderName, Long cityId, String city) {
     }
@@ -87,13 +94,15 @@ public class ShipmentTrackingView {
      *
      * @return false si el movimiento es anterior al último aplicado y se ignora
      */
-    public boolean registrarMovimiento(String newStatus, String point, Instant movedAt) {
+    public boolean registrarMovimiento(String newStatus, String point, Long cityId, String city, Instant movedAt) {
         if (lastMovementAt != null && movedAt.isBefore(lastMovementAt)) {
             return false;
         }
 
         this.status = newStatus;
         this.lastMovementPoint = point;
+        this.lastMovementCityId = cityId;
+        this.lastMovementCity = city;
         this.lastMovementAt = movedAt;
 
         return true;
@@ -111,4 +120,6 @@ public class ShipmentTrackingView {
     public Instant getRegisteredAt() { return registeredAt; }
     public String getLastMovementPoint() { return lastMovementPoint; }
     public Instant getLastMovementAt() { return lastMovementAt; }
+    public Long getLastMovementCityId() { return lastMovementCityId; }
+    public String getLastMovementCity() { return lastMovementCity; }
 }
