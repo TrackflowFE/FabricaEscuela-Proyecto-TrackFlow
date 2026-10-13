@@ -11,4 +11,10 @@ public interface TrackedShipmentRepository {
 
     /** Trae el envío conocido con sus ciudades, para las reglas de coherencia del centro. */
     Optional<TrackedShipment> porTrackingNumber(String trackingNumber);
+
+    /**
+     * Igual que {@link #porTrackingNumber}, pero bloquea el envío hasta que termine la
+     * transacción, para que dos movimientos del mismo envío no se validen a la vez.
+     */
+    Optional<TrackedShipment> porTrackingNumberParaActualizar(String trackingNumber);
 }

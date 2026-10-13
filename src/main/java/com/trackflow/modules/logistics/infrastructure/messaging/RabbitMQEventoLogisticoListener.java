@@ -1,6 +1,11 @@
 package com.trackflow.modules.logistics.infrastructure.messaging;
 
 import com.trackflow.modules.logistics.application.RegistrarEventoLogistico;
+import com.trackflow.modules.logistics.domain.CentroFueraDeCiudadException;
+import com.trackflow.modules.logistics.domain.CentroInvalidoException;
+import com.trackflow.modules.logistics.domain.FechaDeMovimientoInvalidaException;
+import com.trackflow.modules.logistics.domain.MovimientoFueraDeOrdenException;
+import com.trackflow.modules.logistics.domain.TransicionInvalidaException;
 import com.trackflow.modules.logistics.domain.UnknownShipmentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +32,12 @@ public class RabbitMQEventoLogisticoListener {
     public void recibir(EventoLogisticoMensaje mensaje) {
         try {
             registrarEventoLogistico.ejecutar(mensaje.toEntrante());
-        } catch (UnknownShipmentException e) {
-            // Reintentar no va a hacer que el envío exista: a la cola de descartados.
-            log.warn("Evento {} descartado: {}", mensaje.eventId(), e.getMessage());
+        } catch (UnknownShipmentException | TransicionInvalidaException | MovimientoFueraDeOrdenException
+                | CentroFueraDeCiudadException | CentroInvalidoException | FechaDeMovimientoInvalidaException e) {
+            // Reintentar no va a cambiar la respuesta: ni el envío va a aparecer, ni el
+            // movimiento va a caber en el recorrido. A la cola de descartados, con su motivo.
+            log.warn("Evento {} del envío {} descartado: {}", mensaje.eventId(), mensaje.trackingNumber(),
+                    e.getMessage());
             throw new AmqpRejectAndDontRequeueException(e.getMessage(), e);
         }
     }
