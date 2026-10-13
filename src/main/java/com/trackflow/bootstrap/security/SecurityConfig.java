@@ -58,7 +58,8 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated();
                     // Lo que ve el cliente final: el número de seguimiento es su credencial.
                     auth.requestMatchers(HttpMethod.GET, "/api/tracking/**").permitAll();
-                    auth.requestMatchers(HttpMethod.GET, "/api/shipments/*/events").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/shipments/*/events", "/api/shipments/*/route")
+                            .permitAll();
                     // El catálogo de ciudades son las capitales del país: no es información
                     // de la operación, y el formulario de registro lo usa para sugerir.
                     auth.requestMatchers(HttpMethod.GET, "/api/cities", "/api/cities/*").permitAll();

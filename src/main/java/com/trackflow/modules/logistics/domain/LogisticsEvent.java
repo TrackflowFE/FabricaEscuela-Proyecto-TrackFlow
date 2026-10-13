@@ -54,6 +54,18 @@ public class LogisticsEvent {
     @Column(updatable = false)
     private String cityName;
 
+    /**
+     * Hacia qué ciudad salió el camión: la siguiente parada de la ruta en el momento del
+     * despacho. Solo tiene valor en eventos DISPATCHED. Sin este dato el historial solo
+     * podía decir "despachado hacia" el destino final, aunque el camión fuera a un hub.
+     */
+    @Column(updatable = false)
+    private Long nextStopCityId;
+
+    /** Nombre de esa ciudad, congelado en el momento del despacho. */
+    @Column(updatable = false)
+    private String nextStopCity;
+
     /** Quien reparte. Solo tiene valor en eventos OUT_FOR_DELIVERY. */
     @Column(updatable = false)
     private String delivererName;
@@ -76,6 +88,10 @@ public class LogisticsEvent {
     public record Lugar(String point, Long centerId, Long cityId, String cityName) {
     }
 
+    /** Ciudad a la que se dirige un despacho. */
+    public record Parada(Long cityId, String cityName) {
+    }
+
     /** Lo que reporta el operador, antes de que el sistema le ponga fecha de registro. */
     public record Reporte(String eventId, String trackingNumber, EventType type, Lugar lugar, String notes,
             String delivererName, Instant occurredAt) {
@@ -84,7 +100,7 @@ public class LogisticsEvent {
     protected LogisticsEvent() {
     }
 
-    private LogisticsEvent(Reporte reporte, Instant registeredAt) {
+    private LogisticsEvent(Reporte reporte, Parada siguienteParada, Instant registeredAt) {
         this.eventId = reporte.eventId();
         this.trackingNumber = reporte.trackingNumber();
         this.type = reporte.type();
@@ -96,6 +112,10 @@ public class LogisticsEvent {
         this.delivererName = reporte.delivererName();
         this.occurredAt = reporte.occurredAt();
         this.registeredAt = registeredAt;
+        if (siguienteParada != null) {
+            this.nextStopCityId = siguienteParada.cityId();
+            this.nextStopCity = siguienteParada.cityName();
+        }
     }
 
     /**
@@ -103,12 +123,20 @@ public class LogisticsEvent {
      * y no en el DTO porque el reporte llega por REST y también por la cola.
      */
     public static LogisticsEvent registrar(Reporte reporte, Instant registeredAt) {
+        return registrar(reporte, null, registeredAt);
+    }
+
+    /**
+     * @param siguienteParada hacia dónde va el camión, para un despacho; null en el resto
+     */
+    public static LogisticsEvent registrar(Reporte reporte, Parada siguienteParada, Instant registeredAt) {
         Instant occurredAt = reporte.occurredAt();
         if (occurredAt == null || occurredAt.isAfter(registeredAt)) {
             throw new FechaDeMovimientoInvalidaException(occurredAt, registeredAt);
         }
 
-        return new LogisticsEvent(reporte, registeredAt);
+        return new LogisticsEvent(reporte, reporte.type() == EventType.DISPATCHED ? siguienteParada : null,
+                registeredAt);
     }
 
     public Long getId() {
@@ -145,6 +173,14 @@ public class LogisticsEvent {
 
     public String getCityName() {
         return cityName;
+    }
+
+    public Long getNextStopCityId() {
+        return nextStopCityId;
+    }
+
+    public String getNextStopCity() {
+        return nextStopCity;
     }
 
     public String getDelivererName() {

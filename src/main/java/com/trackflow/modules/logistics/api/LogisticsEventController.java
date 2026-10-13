@@ -3,10 +3,12 @@ package com.trackflow.modules.logistics.api;
 import com.trackflow.modules.logistics.api.dto.AccionesDisponiblesResponse;
 import com.trackflow.modules.logistics.api.dto.EventoAdmitidoResponse;
 import com.trackflow.modules.logistics.api.dto.HistorialResponse;
+import com.trackflow.modules.logistics.api.dto.RutaDelEnvioResponse;
 import com.trackflow.modules.logistics.api.dto.RegistrarEventoRequest;
 import com.trackflow.modules.logistics.application.AdmitirEventoLogistico;
 import com.trackflow.modules.logistics.application.ConsultarAccionesDisponibles;
 import com.trackflow.modules.logistics.application.ConsultarHistorial;
+import com.trackflow.modules.logistics.application.ConsultarRutaDelEnvio;
 import com.trackflow.modules.logistics.application.EventoLogisticoEntrante;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -30,12 +32,15 @@ public class LogisticsEventController {
     private final AdmitirEventoLogistico admitirEventoLogistico;
     private final ConsultarHistorial consultarHistorial;
     private final ConsultarAccionesDisponibles consultarAccionesDisponibles;
+    private final ConsultarRutaDelEnvio consultarRutaDelEnvio;
 
     public LogisticsEventController(AdmitirEventoLogistico admitirEventoLogistico,
-            ConsultarHistorial consultarHistorial, ConsultarAccionesDisponibles consultarAccionesDisponibles) {
+            ConsultarHistorial consultarHistorial, ConsultarAccionesDisponibles consultarAccionesDisponibles,
+            ConsultarRutaDelEnvio consultarRutaDelEnvio) {
         this.admitirEventoLogistico = admitirEventoLogistico;
         this.consultarHistorial = consultarHistorial;
         this.consultarAccionesDisponibles = consultarAccionesDisponibles;
+        this.consultarRutaDelEnvio = consultarRutaDelEnvio;
     }
 
     /**
@@ -66,6 +71,15 @@ public class LogisticsEventController {
     @GetMapping("/events")
     public HistorialResponse historial(@PathVariable String trackingNumber) {
         return HistorialResponse.from(trackingNumber, consultarHistorial.ejecutar(trackingNumber));
+    }
+
+    /**
+     * Itinerario del envío: ciudades recorridas, escalas pendientes y destino. Público,
+     * como el historial: el cliente ve por dónde va a pasar su paquete.
+     */
+    @GetMapping("/route")
+    public RutaDelEnvioResponse ruta(@PathVariable String trackingNumber) {
+        return RutaDelEnvioResponse.from(consultarRutaDelEnvio.ejecutar(trackingNumber));
     }
 
     /**
