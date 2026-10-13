@@ -53,7 +53,10 @@ public class RepublicarEventosLogisticos {
                     evento.getCityName(),
                     evento.getOccurredAt(),
                     evento.getRegisteredAt(),
-                    clock.instant()));
+                    clock.instant(),
+                    evento.getNextStopCityId(),
+                    evento.getNextStopCity(),
+                    evento.getPlannedLegHours()));
         }
 
         log.info("Republicados {} eventos logísticos para reconstrucción", todos.size());

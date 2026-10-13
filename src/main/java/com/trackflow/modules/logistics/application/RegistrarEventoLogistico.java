@@ -5,6 +5,7 @@ import com.trackflow.modules.logistics.domain.FechaDeMovimientoInvalidaException
 import com.trackflow.modules.logistics.domain.FlujoLogistico;
 import com.trackflow.modules.logistics.domain.LogisticsEvent;
 import com.trackflow.modules.logistics.domain.TrackedShipment;
+import com.trackflow.modules.logistics.domain.Tramo;
 import com.trackflow.modules.logistics.domain.UnknownShipmentException;
 import com.trackflow.shared.events.EventPublisher;
 import com.trackflow.shared.events.EventoLogisticoRegistradoEvent;
@@ -31,16 +32,18 @@ public class RegistrarEventoLogistico {
     private final TrackedShipmentRepository trackedShipments;
     private final ConsultarEstadoDelEnvio estadoDelEnvio;
     private final ValidadorDeRecorrido validador;
+    private final RedDeRutas red;
     private final EventPublisher events;
     private final Clock clock;
 
     public RegistrarEventoLogistico(LogisticsEventRepository logisticsEvents,
             TrackedShipmentRepository trackedShipments, ConsultarEstadoDelEnvio estadoDelEnvio,
-            ValidadorDeRecorrido validador, EventPublisher events, Clock clock) {
+            ValidadorDeRecorrido validador, RedDeRutas red, EventPublisher events, Clock clock) {
         this.logisticsEvents = logisticsEvents;
         this.trackedShipments = trackedShipments;
         this.estadoDelEnvio = estadoDelEnvio;
         this.validador = validador;
+        this.red = red;
         this.events = events;
         this.clock = clock;
     }
@@ -89,7 +92,8 @@ public class RegistrarEventoLogistico {
                         entrante.observaciones(),
                         entrante.repartidorNombre(),
                         entrante.ocurridoEn()),
-                new LogisticsEvent.Parada(estado.siguienteParada().id(), estado.siguienteParada().etiqueta()),
+                new LogisticsEvent.Parada(estado.siguienteParada().id(), estado.siguienteParada().etiqueta(),
+                        horasDelTramo(estado.ciudadActual().id(), estado.siguienteParada().id())),
                 now));
 
         events.publish(new EventoLogisticoRegistradoEvent(
@@ -103,8 +107,20 @@ public class RegistrarEventoLogistico {
                 saved.getCityName(),
                 saved.getOccurredAt(),
                 saved.getRegisteredAt(),
-                now));
+                now,
+                saved.getNextStopCityId(),
+                saved.getNextStopCity(),
+                saved.getPlannedLegHours()));
 
         return Optional.of(saved);
+    }
+
+    /** Duración del tramo directo entre dos ciudades según la red, o null si no existe. */
+    private Integer horasDelTramo(Long desde, Long hasta) {
+        return red.tramosActivos().stream()
+                .filter(tramo -> tramo.desdeCiudadId().equals(desde) && tramo.hastaCiudadId().equals(hasta))
+                .map(Tramo::horas)
+                .findFirst()
+                .orElse(null);
     }
 }

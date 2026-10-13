@@ -38,6 +38,8 @@ public class ProyectarSeguimientoEnvio {
                             event.point(),
                             event.cityId(),
                             event.cityName(),
+                            event.nextStopCity(),
+                            event.plannedLegHours(),
                             event.movedAt()
                     );
 

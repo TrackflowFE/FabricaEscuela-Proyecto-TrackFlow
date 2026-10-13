@@ -15,6 +15,11 @@ import java.time.Instant;
  * dependa del nombre (que puede repetirse o cambiar); {@code cityName} es la etiqueta
  * para mostrar. Son null en los eventos históricos registrados con texto libre, antes
  * de que existiera el catálogo de centros.
+ *
+ * En un despacho, {@code nextStopCityId} y {@code nextStopCity} dicen hacia qué ciudad
+ * salió el camión y {@code plannedLegHours} cuánto dura ese tramo según la red; en los
+ * demás movimientos son null. Con ellos el reporte de retrasos sabe hacia dónde va un
+ * envío en tránsito y cuánto debería tardar.
  */
 public record EventoLogisticoRegistradoEvent(
         Long logisticsEventId,
@@ -27,7 +32,18 @@ public record EventoLogisticoRegistradoEvent(
         String cityName,
         Instant movedAt,
         Instant registeredAt,
-        Instant occurredAt) implements DomainEvent {
+        Instant occurredAt,
+        Long nextStopCityId,
+        String nextStopCity,
+        Integer plannedLegHours) implements DomainEvent {
+
+    /** Movimiento sin datos de despacho: la forma del contrato antes de que los llevara. */
+    public EventoLogisticoRegistradoEvent(Long logisticsEventId, String trackingNumber, String eventType,
+            String resultingStatus, String point, Long centerId, Long cityId, String cityName, Instant movedAt,
+            Instant registeredAt, Instant occurredAt) {
+        this(logisticsEventId, trackingNumber, eventType, resultingStatus, point, centerId, cityId, cityName,
+                movedAt, registeredAt, occurredAt, null, null, null);
+    }
 
     /**
      * Evento sin id de ciudad, como los registrados antes de que el evento lo llevara

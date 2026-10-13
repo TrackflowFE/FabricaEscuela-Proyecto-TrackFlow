@@ -66,6 +66,14 @@ public class LogisticsEvent {
     @Column(updatable = false)
     private String nextStopCity;
 
+    /**
+     * Cuántas horas dura, según la red, el tramo que empieza con este despacho. Es la
+     * referencia para saber si el camión va retrasado. Null si no hay tramo en la red
+     * (por ejemplo, un trayecto directo asumido porque se cerró la ruta).
+     */
+    @Column(updatable = false)
+    private Integer plannedLegHours;
+
     /** Quien reparte. Solo tiene valor en eventos OUT_FOR_DELIVERY. */
     @Column(updatable = false)
     private String delivererName;
@@ -88,8 +96,12 @@ public class LogisticsEvent {
     public record Lugar(String point, Long centerId, Long cityId, String cityName) {
     }
 
-    /** Ciudad a la que se dirige un despacho. */
-    public record Parada(Long cityId, String cityName) {
+    /**
+     * Ciudad a la que se dirige un despacho y cuánto dura el tramo hasta ella.
+     *
+     * @param horasDelTramo duración planeada del tramo; null si la red no lo tiene
+     */
+    public record Parada(Long cityId, String cityName, Integer horasDelTramo) {
     }
 
     /** Lo que reporta el operador, antes de que el sistema le ponga fecha de registro. */
@@ -115,6 +127,7 @@ public class LogisticsEvent {
         if (siguienteParada != null) {
             this.nextStopCityId = siguienteParada.cityId();
             this.nextStopCity = siguienteParada.cityName();
+            this.plannedLegHours = siguienteParada.horasDelTramo();
         }
     }
 
@@ -181,6 +194,10 @@ public class LogisticsEvent {
 
     public String getNextStopCity() {
         return nextStopCity;
+    }
+
+    public Integer getPlannedLegHours() {
+        return plannedLegHours;
     }
 
     public String getDelivererName() {
