@@ -20,11 +20,11 @@ public enum CiudadEsperada {
     ACTUAL("la ciudad donde está el paquete"),
 
     /**
-     * Cualquier ciudad menos la de destino. Un envío puede pasar por hubs
-     * intermedios, pero si el centro ya es de la ciudad de destino el movimiento no
-     * es un paso más: es la llegada, y le corresponde ARRIVED_AT_DESTINATION_CENTER.
+     * La siguiente ciudad de la ruta planeada desde donde está el paquete hasta su
+     * destino: un hub intermedio. Antes valía cualquier ciudad menos la de destino, y
+     * por eso un envío Medellín → Bogotá podía "pasar" por Cartagena.
      */
-    HUB_INTERMEDIO("una ciudad distinta a la de destino");
+    SIGUIENTE_PARADA("la siguiente ciudad de la ruta del envío");
 
     private final String descripcion;
 

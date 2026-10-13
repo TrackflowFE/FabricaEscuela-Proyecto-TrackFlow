@@ -4,9 +4,9 @@ import com.trackflow.modules.logistics.domain.Centro;
 import com.trackflow.modules.logistics.domain.CiudadEsperada;
 import com.trackflow.modules.logistics.domain.EventType;
 import com.trackflow.modules.logistics.domain.FlujoLogistico;
-import com.trackflow.shared.geografia.CatalogoDeCiudades;
 import com.trackflow.shared.geografia.Ciudad;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,8 +28,7 @@ public class ConsultarAccionesDisponibles {
     }
 
     /**
-     * @param ciudadDeLosCentros ciudad a la que pertenecen los centros ofrecidos, o
-     *        null en el paso por un hub, donde vale cualquiera menos la de destino
+     * @param ciudadDeLosCentros ciudad a la que pertenecen los centros ofrecidos
      * @param ruta trayecto que representa el movimiento, solo para el despacho
      */
     public record Accion(EventType tipo, CiudadEsperada ciudadEsperada, Ciudad ciudadDeLosCentros,
@@ -41,13 +40,10 @@ public class ConsultarAccionesDisponibles {
 
     private final ConsultarEstadoDelEnvio estadoDelEnvio;
     private final CatalogoDeCentros centros;
-    private final CatalogoDeCiudades ciudades;
 
-    public ConsultarAccionesDisponibles(ConsultarEstadoDelEnvio estadoDelEnvio, CatalogoDeCentros centros,
-            CatalogoDeCiudades ciudades) {
+    public ConsultarAccionesDisponibles(ConsultarEstadoDelEnvio estadoDelEnvio, CatalogoDeCentros centros) {
         this.estadoDelEnvio = estadoDelEnvio;
         this.centros = centros;
-        this.ciudades = ciudades;
     }
 
     public Acciones ejecutar(String trackingNumber) {
@@ -64,34 +60,34 @@ public class ConsultarAccionesDisponibles {
         CiudadEsperada esperada = FlujoLogistico.ciudadEsperada(tipo, estado.ultimoTipo());
         Ciudad ciudad = estado.ciudadQueExige(esperada);
 
-        return new Accion(tipo, esperada, ciudad, centrosPara(ciudad, estado), rutaPara(tipo, estado));
+        return new Accion(tipo, esperada, ciudad, centrosPara(ciudad), rutaPara(tipo, estado));
     }
 
-    private List<CentroDisponible> centrosPara(Ciudad ciudad, EstadoDelEnvio estado) {
-        // Con ciudad concreta basta con filtrar por ella; en el paso por un hub la
-        // regla es al revés — sirve cualquiera menos la de destino, porque un centro
-        // de la ciudad de destino significa que el paquete ya llegó.
-        List<Centro> disponibles = ciudad != null
-                ? centros.buscar(null, ciudad.id(), LIMITE_CENTROS)
-                : centros.buscar(null, null, LIMITE_CENTROS).stream()
-                        .filter(centro -> !centro.getCityId().equals(estado.destino().id()))
-                        .toList();
-
-        return disponibles.stream()
-                .map(centro -> new CentroDisponible(centro,
-                        ciudad != null ? ciudad : ciudades.exigir(centro.getCityId())))
+    /**
+     * Toda regla señala una ciudad concreta, también la de un hub (la siguiente de la
+     * ruta), así que basta con filtrar por ella. Antes, en el paso por un hub se
+     * ofrecían los primeros centros del catálogo en orden alfabético, de cualquier
+     * ciudad, y la opción correcta podía ni aparecer.
+     */
+    private List<CentroDisponible> centrosPara(Ciudad ciudad) {
+        return centros.buscar(null, ciudad.id(), LIMITE_CENTROS).stream()
+                .map(centro -> new CentroDisponible(centro, ciudad))
                 .toList();
     }
 
     /**
-     * El despacho es el único movimiento que representa un trayecto, y sale de las
-     * entidades: desde donde está el paquete hacia el destino del envío. El operador
-     * no la escribe.
+     * El despacho es el único movimiento que representa un trayecto: la ruta planeada
+     * desde donde está el paquete hasta el destino, con las paradas intermedias. El
+     * operador no la escribe.
      */
     private String rutaPara(EventType tipo, EstadoDelEnvio estado) {
         if (tipo != EventType.DISPATCHED) {
             return null;
         }
-        return estado.ciudadActual().etiqueta() + " → " + estado.destino().etiqueta();
+        return etiquetaDeRuta(estado.rutaPlaneada());
+    }
+
+    public static String etiquetaDeRuta(List<Ciudad> ruta) {
+        return ruta.stream().map(Ciudad::etiqueta).collect(Collectors.joining(" → "));
     }
 }

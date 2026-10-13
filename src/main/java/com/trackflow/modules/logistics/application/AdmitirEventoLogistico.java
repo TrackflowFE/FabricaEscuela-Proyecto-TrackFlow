@@ -144,9 +144,13 @@ public class AdmitirEventoLogistico {
                 evento.getOccurredAt());
     }
 
-    /** El movimiento debe caber en el recorrido: en el orden correcto y sin retroceder en el tiempo. */
+    /**
+     * El movimiento debe caber en el recorrido: en el orden correcto, acorde con la ruta
+     * (tras un despacho, llegada si la siguiente parada es el destino, hub si no) y sin
+     * retroceder en el tiempo.
+     */
     private void validarRecorrido(Command command, EstadoDelEnvio estado, Instant ocurridoEn) {
-        if (!FlujoLogistico.permite(estado.ultimoTipo(), command.tipo())) {
+        if (!estado.siguientesPermitidos().contains(command.tipo())) {
             throw new TransicionInvalidaException(command.trackingNumber(), estado.estado(), command.tipo(),
                     estado.siguientesPermitidos());
         }
@@ -159,21 +163,11 @@ public class AdmitirEventoLogistico {
 
     /**
      * El centro debe estar donde el recorrido lo exige: el primer ingreso en la ciudad
-     * de origen, el despacho desde donde está el paquete, y la llegada, el reparto y la
-     * entrega en la ciudad de destino.
+     * de origen, el despacho desde donde está el paquete, un hub en la siguiente ciudad
+     * de la ruta, y la llegada, el reparto y la entrega en la ciudad de destino.
      */
     private void validarCiudadDelCentro(EventType tipo, EstadoDelEnvio estado, Centro centro, Ciudad ciudadCentro) {
         CiudadEsperada esperada = FlujoLogistico.ciudadEsperada(tipo, estado.ultimoTipo());
-
-        if (esperada == CiudadEsperada.HUB_INTERMEDIO) {
-            // Un paso intermedio en la ciudad de destino no es un paso: es la llegada.
-            if (centro.getCityId().equals(estado.destino().id())) {
-                throw CentroFueraDeCiudadException.para(tipo, esperada, centro.getName(), ciudadCentro.etiqueta(),
-                        null);
-            }
-            return;
-        }
-
         Ciudad debeEstarEn = estado.ciudadQueExige(esperada);
         if (!centro.getCityId().equals(debeEstarEn.id())) {
             throw CentroFueraDeCiudadException.para(tipo, esperada, centro.getName(), ciudadCentro.etiqueta(),

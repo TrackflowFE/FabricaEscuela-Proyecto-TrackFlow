@@ -41,13 +41,14 @@ public class AdmitirEnvio {
      *
      * Además deben tener cobertura: un envío hacia o desde una ciudad sin centros
      * activos nunca podría recibirse en origen ni llegar a destino, y quedaría
-     * registrado pero muerto.
+     * registrado pero muerto. Y la red de rutas debe conectarlas, por la misma razón.
      */
     public EnvioSolicitado ejecutar(Command command) {
         Ciudad ciudadRemitente = ciudades.exigir(command.remitente().ciudadId());
         Ciudad ciudadDestino = ciudades.exigir(command.destinatario().ciudadId());
         cobertura.exigir(ciudadRemitente);
         cobertura.exigir(ciudadDestino);
+        cobertura.exigirRuta(ciudadRemitente, ciudadDestino);
 
         TrackingNumber trackingNumber = trackingNumbers.next();
 

@@ -27,13 +27,16 @@ public class ConsultarEstadoDelEnvio {
     private final LogisticsEventRepository logisticsEvents;
     private final CatalogoDeCentros centros;
     private final CatalogoDeCiudades ciudades;
+    private final PlanificarRuta planificarRuta;
 
     public ConsultarEstadoDelEnvio(TrackedShipmentRepository trackedShipments,
-            LogisticsEventRepository logisticsEvents, CatalogoDeCentros centros, CatalogoDeCiudades ciudades) {
+            LogisticsEventRepository logisticsEvents, CatalogoDeCentros centros, CatalogoDeCiudades ciudades,
+            PlanificarRuta planificarRuta) {
         this.trackedShipments = trackedShipments;
         this.logisticsEvents = logisticsEvents;
         this.centros = centros;
         this.ciudades = ciudades;
+        this.planificarRuta = planificarRuta;
     }
 
     public EstadoDelEnvio ejecutar(String trackingNumber) {
@@ -66,6 +69,9 @@ public class ConsultarEstadoDelEnvio {
                 .map(centro -> ciudades.exigir(centro.getCityId()))
                 .orElse(origen);
 
+        List<Ciudad> ruta = rutaHastaElDestino(ciudadActual, destino);
+        Ciudad siguienteParada = ruta.size() == 1 ? ruta.get(0) : ruta.get(1);
+
         return new EstadoDelEnvio(
                 envio.getTrackingNumber(),
                 ultimoTipo,
@@ -76,6 +82,20 @@ public class ConsultarEstadoDelEnvio {
                 ciudadActual,
                 origen,
                 destino,
-                FlujoLogistico.siguientesPermitidos(ultimoTipo));
+                ruta,
+                siguienteParada,
+                FlujoLogistico.siguientesPermitidos(ultimoTipo, siguienteParada.id().equals(destino.id())));
+    }
+
+    /**
+     * La ruta más corta desde donde está el paquete. Si la red ya no conecta las dos
+     * ciudades (por ejemplo, porque se cerró un tramo después de registrar el envío),
+     * se asume el trayecto directo en vez de dejar el envío sin ningún movimiento
+     * posible: el registro de envíos nuevos ya exige que exista ruta.
+     */
+    private List<Ciudad> rutaHastaElDestino(Ciudad actual, Ciudad destino) {
+        return planificarRuta.entre(actual.id(), destino.id())
+                .map(ruta -> ruta.ciudades().stream().map(ciudades::exigir).toList())
+                .orElseGet(() -> actual.id().equals(destino.id()) ? List.of(destino) : List.of(actual, destino));
     }
 }
