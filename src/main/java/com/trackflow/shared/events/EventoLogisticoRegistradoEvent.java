@@ -28,4 +28,15 @@ public record EventoLogisticoRegistradoEvent(
         Instant movedAt,
         Instant registeredAt,
         Instant occurredAt) implements DomainEvent {
+
+    /**
+     * Evento sin id de ciudad, como los registrados antes de que el evento lo llevara
+     * (V17). Mantiene la forma anterior del contrato para quien todavía la construye.
+     */
+    public EventoLogisticoRegistradoEvent(Long logisticsEventId, String trackingNumber, String eventType,
+            String resultingStatus, String point, Long centerId, String cityName, Instant movedAt,
+            Instant registeredAt, Instant occurredAt) {
+        this(logisticsEventId, trackingNumber, eventType, resultingStatus, point, centerId, null, cityName,
+                movedAt, registeredAt, occurredAt);
+    }
 }
