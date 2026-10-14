@@ -34,7 +34,7 @@ public record EnvioSolicitadoMensaje(
     public static final int VERSION = 1;
 
     @JsonProperty("version")
-    public int version() {
+    public int schemaVersion() {
         return VERSION;
     }
 
