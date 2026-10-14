@@ -42,7 +42,7 @@ public class SecurityConfig {
                 // CSRF explota que el navegador adjunta solo las cookies de sesión. Aquí no
                 // hay cookies: la sesión es STATELESS y el JWT viaja en la cabecera
                 // Authorization, que un sitio ajeno no puede añadir. Por eso se desactiva.
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // NOSONAR java:S4502 - API sin estado, JWT en cabecera, sin cookies
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     // El OPTIONS de precomprobación nunca lleva token, por diseño del propio
